@@ -3,23 +3,23 @@ const Cart = require('../models/cart');
 
 
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll().then(([rows, fieldData]) => {
+  Product.findAll().then(prod => {
     res.render('shop/product-list', {
-      prods: rows,
+      prods: prod,
       pageTitle: 'All Products',
       path: '/products'
     });
-  }).catch((err) => {
-    console.log("Error in getProducts", err);
+  }).catch(err => {
+    console.log('Error in fetch data', err);
   })
 };
 
 exports.getProduct = (req, res, next) => {
   const prodId = req.params.productId;
-  Product.findById(prodId).then(([rows]) => {
+  Product.findByPk(prodId).then((prod) => {
     res.render('shop/product-detail', {
-      product: rows[0],
-      pageTitle: rows.title,
+      product: prod,
+      pageTitle: prod.title,
       path: '/products'
     })
   }).catch((err) => {
@@ -28,14 +28,14 @@ exports.getProduct = (req, res, next) => {
 }
 
 exports.getIndex = (req, res, next) => {
-  Product.fetchAll().then(([rows, fieldData]) => {
+  Product.findAll().then(prod => {
     res.render('shop/index', {
-      prods: rows,
+      prods: prod,
       pageTitle: 'Shop',
       path: '/'
     });
-  }).catch((err) => {
-    console.log("Error in getIndex", err);
+  }).catch(err => {
+    console.log('Error in fetch data', err);
   })
 };
 
