@@ -3,11 +3,10 @@ const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const db = require('./util/db');
-const User = require('./models/user');
-const Product = require('./models/product');
 
 const errorController = require('./controllers/error');
-const port = process.env.PORT || 3000
+const port = process.env.PORT || 3000;
+const User = require('./models/user')
 
 const app = express();
 
@@ -20,16 +19,15 @@ const shopRoutes = require('./routes/shop');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use((req, res, next) => {
-    User.findByPk(1)
-        .then(user => {
-            console.log("User--------------", user);
-            req.user = user;
-            next();
-        })
-        .catch(err => {
-            console.log(err)
-        })
+app.use((req , res, next) => {
+    User.findById('606ddddd810655b3aa3ce49a')
+    .then(user => {
+        req.user = new User(user.name, user.email, user.cart, user._id);
+        next();
+    })
+    .catch(err => {
+        console.error('Error in find User', err);
+    })
 })
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
@@ -38,28 +36,8 @@ app.use(shopRoutes);
 app.use(errorController.get404);
 console.log('Port Started on', port);
 
-Product.belongsTo(User, { constraints: true, onDelete: 'CASCADE' });
-
-db.
-    // sync({force:true})
-    sync()
-    .then(res => {
-        console.log(res.models);
-        return User.findByPk(1)
-    })
-    .then(user => {
-        if (!user) {
-            return User.create({
-                name: 'Avb',
-                email: 'avb@gmail.com'
-            })
-        }
-        return user;
-    })
-    .then(user => console.log('User', user.dataValues))
-    .catch((err) => {
-        console.log("Error in DB", err);
-    });
-
+db.mongoConnect(() => {
+    console.log('Client DB');
+})
 
 app.listen(port);
