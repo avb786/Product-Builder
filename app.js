@@ -3,6 +3,7 @@ const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const db = require('./util/db');
+const mongoose = require('mongoose')
 
 const errorController = require('./controllers/error');
 const port = process.env.PORT || 3000;
@@ -20,9 +21,9 @@ const shopRoutes = require('./routes/shop');
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use((req , res, next) => {
-    User.findById('606ddddd810655b3aa3ce49a')
+    User.findById('6071d67ca90e1541900a60b5')
     .then(user => {
-        req.user = new User(user.name, user.email, user.cart, user._id);
+        req.user = user;
         next();
     })
     .catch(err => {
@@ -36,8 +37,27 @@ app.use(shopRoutes);
 app.use(errorController.get404);
 console.log('Port Started on', port);
 
-db.mongoConnect(() => {
-    console.log('Client DB');
+// db.mongoConnect(() => {
+//     console.log('Client DB');
+// })
+mongoose.connect('mongodb+srv://dbavb786:Avb@90333@taskmanager-e8bqy.mongodb.net/mono-examples?retryWrites=true&w=majority',{ useNewUrlParser: true })
+.then(res => {
+    User.findOne().then(user => {
+        if(!user) {
+            const user = new User({
+                name: 'Aayush',
+                email: 'avb@786@gmail.com',
+                cart: {
+                    items: []
+                }
+            })
+            user.save();
+        }
+    })
+ 
+    console.log("Mongo DB Connected");
 })
-
+.catch(err => {
+    console.error('Error in connection to db', err);
+})
 app.listen(port);
