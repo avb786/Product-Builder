@@ -8,7 +8,8 @@ exports.getProducts = (req, res, next) => {
     res.render('shop/product-list', {
       prods: prod,
       pageTitle: 'All Products',
-      path: '/products'
+      path: '/products',
+      isAuth: req.session.user
     });
   }).catch(err => {
     console.log('Error in fetch data', err);
@@ -21,7 +22,8 @@ exports.getProduct = (req, res, next) => {
     res.render('shop/product-detail', {
       product: prod,
       pageTitle: prod.title,
-      path: '/products'
+      path: '/products',
+      isAuth: req.session.user
     })
   }).catch((err) => {
     console.error("Error in getProduct");
@@ -33,7 +35,8 @@ exports.getIndex = (req, res, next) => {
     res.render('shop/index', {
       prods: prod,
       pageTitle: 'Shop',
-      path: '/'
+      path: '/',
+      isAuth:   req.session.user
     });
   }).catch(err => {
     console.log('Error in fetch data', err);
@@ -48,7 +51,8 @@ exports.getCart = (req, res, next) => {
     res.render('shop/cart', {
       path: '/cart',
       pageTitle: 'Your Cart',
-      products: cartProducts.cart.items
+      products: cartProducts.cart.items,
+      isAuth:   req.session.user
     });
   }).catch(err => {
     console.log("Error in getCart ", err);
@@ -68,12 +72,13 @@ exports.postCart = (req, res, next) => {
 }
 
 exports.getOrders = (req, res, next) => {
-  Order.find({'user.userId': req.user._id})
+  Order.find({'user.userId': req.session.user._id})
  .then(order => {
     res.render('shop/orders', {
       path: '/orders',
       pageTitle: 'Your Orders',
-      orders: order
+      orders: order,
+      isAuth:   req.session.user
     });
   })
   .catch(err => {
@@ -85,7 +90,8 @@ exports.getOrders = (req, res, next) => {
 exports.getCheckout = (req, res, next) => {
   res.render('shop/checkout', {
     path: '/checkout',
-    pageTitle: 'Checkout'
+    pageTitle: 'Checkout',
+    isAuth:   req.session.user
   });
 };
 
@@ -113,8 +119,8 @@ exports.postOrder = (req,res, next) => {
     })
     const order = new Order({
       user: {
-        name: req.user.name,
-        userId: req.user
+        name: req.session.user.name,
+        userId: req.session.user
       },
       products:products
     })
