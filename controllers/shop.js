@@ -36,7 +36,7 @@ exports.getIndex = (req, res, next) => {
       prods: prod,
       pageTitle: 'Shop',
       path: '/',
-      isAuth:   req.session.user
+      isAuth:   req.session.user,
     });
   }).catch(err => {
     console.log('Error in fetch data', err);
@@ -117,9 +117,12 @@ exports.postOrder = (req,res, next) => {
         product:{ ...i.productId._doc}
       }
     })
+
+    console.log('USERSSR', user);
+
     const order = new Order({
       user: {
-        name: req.session.user.name,
+        name: user.email,
         userId: req.session.user
       },
       products:products

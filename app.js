@@ -7,8 +7,10 @@ const mongoose = require('mongoose')
 const session = require('express-session')
 const MongoDbStoreSession = require('connect-mongodb-session')(session)
 const errorController = require('./controllers/error');
+const csrf = require('csurf')
 const port = process.env.PORT || 3000;
 const User = require('./models/user')
+const flash = require('connect-flash')
 
 const app = express();
 const store = new MongoDbStoreSession({
@@ -24,6 +26,8 @@ const shopRoutes = require('./routes/shop');
 const authRoutes = require('./routes/auth');
 
 
+const csrfProtection = csrf()
+
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
@@ -32,6 +36,7 @@ app.use(session({
     saveUninitialized: false,
     store: store
 }))
+app.use(csrfProtection)
 app.use((req, res, next) => {
     if(!req.session.user) return next();
     User.findById(req.session.user._id)
@@ -44,6 +49,14 @@ app.use((req, res, next) => {
     })
     // res.redirect('/')
 })
+
+app.use((req, res, next) => {
+    res.locals.isAuthenticated = req.session.isAuth;
+    res.locals.csrfToken = req.csrfToken();
+    next()
+})
+app.use(flash())
+
 app.use('/admin', adminRoutes);
 app.use(authRoutes);
 app.use(shopRoutes);
@@ -57,19 +70,6 @@ console.log('Port Started on', port);
 // })
 mongoose.connect('mongodb+srv://dbavb786:Avb@90333@taskmanager-e8bqy.mongodb.net/mono-examples?retryWrites=true&w=majority',{ useNewUrlParser: true })
 .then(res => {
-    User.findOne().then(user => {
-        if(!user) {
-            const user = new User({
-                name: 'Aayush',
-                email: 'avb@786@gmail.com',
-                cart: {
-                    items: []
-                }
-            })
-            user.save();
-        }
-    })
- 
     console.log("Mongo DB Connected");
 })
 .catch(err => {

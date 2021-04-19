@@ -2,6 +2,7 @@ const Product = require('../models/product');
 const mongodb = require('mongodb')
 
 exports.getAddProduct = (req, res, next) => {
+
   res.render('admin/edit-product', {
     pageTitle: 'Add Product',
     path: '/admin/add-product',
@@ -39,7 +40,7 @@ exports.getEditProduct = (req, res, next) => {
       path: '/admin/edit-product',
       editing: editMode,
       product: product,
-      isAuth:   req.session.user
+      isAuth: req.session.user
     });
   }).catch(err => {
     console.log('Error in getEditProduct', err)
@@ -54,14 +55,17 @@ exports.postEditProduct = (req, res, next) => {
   const updatedDescription = req.body.description;
 
   Product.findById(prodId).then(prod => {
+    if(prod.userId.toString() !== req.session.user._id.toString()) {
+      return  res.redirect('/')
+    }
     prod.title = updatedTitle;
     prod.price = updatedPrice;
     prod.imageUrl = updatedImageUrl;
     prod.description = updatedDescription
-    return   prod.save()
-  }).then((result) => {
-    console.log("Updated Product successfully");
-    res.redirect('/');
+    return   prod.save().then((result) => {
+      console.log("Updated Product successfully");
+      res.redirect('/');
+    })
   })
     .catch(err => {
       console.log("Error in updated product");
@@ -70,7 +74,7 @@ exports.postEditProduct = (req, res, next) => {
 }
 
 exports.getProducts = (req, res, next) => {
-  Product.find()
+  Product.find({userId: req.session.user._id})
   .populate('userId')
   .then(products => {
     res.render('admin/products', {
@@ -86,7 +90,7 @@ exports.getProducts = (req, res, next) => {
 
 exports.deleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
-  Product.findByIdAndRemove(prodId)
+  Product.deleteOne({_id: prodId, userId: req.session.userId})
     .then(() => {
       console.log('Product Deleted Successfully');
       res.redirect('/admin/products');
