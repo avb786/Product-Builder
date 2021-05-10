@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+
 const fileHelper = require('../util/file');
 
 const { validationResult } = require('express-validator/check');
@@ -21,8 +22,7 @@ exports.postAddProduct = (req, res, next) => {
   const image = req.file;
   const price = req.body.price;
   const description = req.body.description;
-  const errors = validationResult(req);
-  if(!image) {
+  if (!image) {
     return res.status(422).render('admin/edit-product', {
       pageTitle: 'Add Product',
       path: '/admin/add-product',
@@ -33,15 +33,14 @@ exports.postAddProduct = (req, res, next) => {
         price: price,
         description: description
       },
-      errorMessage: 'Attach File is not an image',
+      errorMessage: 'Attached file is not an image.',
       validationErrors: []
     });
   }
-
-  const imageUrl = image.path;
+  const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    // console.log(errors.array());
+    console.log(errors.array());
     return res.status(422).render('admin/edit-product', {
       pageTitle: 'Add Product',
       path: '/admin/add-product',
@@ -49,7 +48,6 @@ exports.postAddProduct = (req, res, next) => {
       hasError: true,
       product: {
         title: title,
-        imageUrl: image,
         price: price,
         description: description
       },
@@ -57,6 +55,8 @@ exports.postAddProduct = (req, res, next) => {
       validationErrors: errors.array()
     });
   }
+
+  const imageUrl = image.path;
 
   const product = new Product({
     // _id: new mongoose.Types.ObjectId('5badf72403fd8b5be0366e81'),
@@ -70,7 +70,7 @@ exports.postAddProduct = (req, res, next) => {
     .save()
     .then(result => {
       // console.log(result);
-      // console.log('Created Product');
+      console.log('Created Product');
       res.redirect('/admin/products');
     })
     .catch(err => {
@@ -127,7 +127,7 @@ exports.postEditProduct = (req, res, next) => {
   const prodId = req.body.productId;
   const updatedTitle = req.body.title;
   const updatedPrice = req.body.price;
-  const updatedImage = req.file;
+  const image = req.file;
   const updatedDesc = req.body.description;
 
   const errors = validationResult(req);
@@ -140,7 +140,6 @@ exports.postEditProduct = (req, res, next) => {
       hasError: true,
       product: {
         title: updatedTitle,
-        imageUrl: updatedImageUrl,
         price: updatedPrice,
         description: updatedDesc,
         _id: prodId
@@ -158,12 +157,12 @@ exports.postEditProduct = (req, res, next) => {
       product.title = updatedTitle;
       product.price = updatedPrice;
       product.description = updatedDesc;
-      if(updatedImage) {
+      if (image) {
         fileHelper.deleteFile(product.imageUrl);
-        product.imageUrl = updatedImage.path;
+        product.imageUrl = image.path;
       }
       return product.save().then(result => {
-        // console.log('UPDATED PRODUCT!');
+        console.log('UPDATED PRODUCT!');
         res.redirect('/admin/products');
       });
     })
@@ -193,22 +192,22 @@ exports.getProducts = (req, res, next) => {
     });
 };
 
-exports.postDeleteProduct = (req, res, next) => {
-  const prodId = req.body.productId;
+exports.deleteProduct = (req, res, next) => {
+  const prodId = req.params.productId;
   Product.findById(prodId)
-  .then(product => {
-    if (!product) {
-      return next(new Error('Product not found.'));
-    }
-    fileHelper.deleteFile(product.imageUrl);
-    return Product.deleteOne({ _id: prodId, userId: req.user._id });
-  }).then(() => {
-      // console.log('DESTROYED PRODUCT');
-      res.redirect('/admin/products');
+    .then(product => {
+      if (!product) {
+        return next(new Error('Product not found.'));
+      }
+      fileHelper.deleteFile(product.imageUrl);
+      return Product.deleteOne({ _id: prodId, userId: req.user._id });
+    })
+    .then(() => {
+      console.log('DESTROYED PRODUCT');
+      res.status(200).json({message: 'success'});
     })
     .catch(err => {
-      const error = new Error(err);
-      error.httpStatusCode = 500;
+      res.status(500).json({message: 'Deleting  Product Failed'});
       return next(error);
     });
 };
