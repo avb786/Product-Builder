@@ -1,5 +1,4 @@
 node_modules
+server,key
 private.key
 server.cert
-server.key
-nodemon.json

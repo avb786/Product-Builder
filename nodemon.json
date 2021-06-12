@@ -1,0 +1,7 @@
+{
+  "env": {
+    "MONGODB_USER": "dbavb786",
+    "MONGODB_PASS": "Avb@90333",
+    "STRIPE_KEY": "sk_test_cUYlhHOfTEXpsMyEAanVbrhL00hwrAofTg"
+  }
+}
